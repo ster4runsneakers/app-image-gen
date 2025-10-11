@@ -1,1 +1,107 @@
+<!doctype html>
+<html lang="el" data-theme="auto">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Generator • Ai Hub</title>
+
+  <link rel="manifest" href="manifest.webmanifest?v=1">
+  <link rel="icon" href="static/icons/icon-192.png">
+  <meta id="theme-color" name="theme-color" content="#0b0b10">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <a class="brand" href="./">
+        <span class="logo">AI</span>
+        <strong>Image Generator</strong>
+      </a>
+      <div class="tools">
+        <button class="btn" data-theme="light" aria-pressed="false">Light</button>
+        <button class="btn" data-theme="dark"  aria-pressed="false">Dark</button>
+        <button class="btn" data-theme="auto"  aria-pressed="false">Auto</button>
+        <span id="hint" class="hint"></span>
+      </div>
+    </header>
+
+    <main class="card">
+      <h1 class="title">Image Generator (Hybrid PWA)</h1>
+      <p class="desc">Δώσε prompt. Offline αποθηκεύω ιστορικό· για δημιουργία εικόνας συνδέσου στο internet (ή πρόσθεσε αργότερα δικό σου API).</p>
+
+      <div class="controls">
+        <textarea id="prompt" rows="5" placeholder="π.χ. red sneakers studio photo, soft shadows, f1.8"></textarea>
+        <div class="actions">
+          <button id="save" class="btn">Save prompt (offline)</button>
+          <button id="gen"  class="btn primary">Generate (online)</button>
+        </div>
+      </div>
+
+      <div class="grid" id="history" aria-live="polite"></div>
+    </main>
+
+    <footer class="footer">
+      <span>© 2025 Image Generator</span>
+      <span id="net" class="muted"></span>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    'use strict';
+    document.addEventListener('DOMContentLoaded', function(){
+
+      // ===== THEME
+      var root=document.documentElement, meta=document.getElementById('theme-color'), hint=document.getElementById('hint');
+      var mq=window.matchMedia('(prefers-color-scheme: dark)');
+      function sys(){return mq.matches?'dark':'light'}
+      function apply(m){
+        root.setAttribute('data-theme',m);
+        var eff=(m==='auto')?sys():m;
+        meta.setAttribute('content', eff==='dark'?'#0b0b10':'#fbfbfe');
+        document.querySelectorAll('[data-theme]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.theme===m)));
+        hint.textContent = (m==='auto')?('Auto • system: '+eff):('Theme: '+m);
+        localStorage.setItem('hub_theme', m);
+      }
+      apply(localStorage.getItem('hub_theme')||'auto');
+      (mq.addEventListener?mq.addEventListener('change', ()=>{ if((localStorage.getItem('hub_theme')||'auto')==='auto') apply('auto'); }):mq.addListener(()=>{ if((localStorage.getItem('hub_theme')||'auto')==='auto') apply('auto'); }));
+      document.querySelectorAll('[data-theme]').forEach(b=> b.addEventListener('click', ()=> apply(b.dataset.theme)));
+
+      // ===== OFFLINE INDICATOR
+      var net=document.getElementById('net'); function setNet(){ net.textContent = navigator.onLine ? '' : 'Offline mode'; } window.addEventListener('online', setNet); window.addEventListener('offline', setNet); setNet();
+
+      // ===== SIMPLE OFFLINE HISTORY (localStorage)
+      var LS='imggen_history_v1';
+      var prompt=document.getElementById('prompt'), historyEl=document.getElementById('history');
+      function load(){ try{ return JSON.parse(localStorage.getItem(LS)||'[]'); }catch(_){ return [] } }
+      function saveList(arr){ localStorage.setItem(LS, JSON.stringify(arr.slice(0,50))); }
+      function render(){
+        var arr=load();
+        if(!arr.length){ historyEl.innerHTML='<div class="desc">Δεν υπάρχει ιστορικό ακόμη.</div>'; return; }
+        historyEl.innerHTML = arr.map(p=>'<article class="card"><div class="title">Prompt</div><div class="desc">'+p.replace(/</g,'&lt;')+'</div></article>').join('');
+      }
+      render();
+
+      document.getElementById('save').addEventListener('click', function(){
+        var p=(prompt.value||'').trim(); if(!p) return;
+        var arr=load(); arr.unshift(p); saveList(arr); render();
+      });
+
+      // ===== Generate (online hook – placeholder)
+      // Βάλε αργότερα δικό σου API endpoint. Τώρα απλώς ενημερώνει το UI.
+      document.getElementById('gen').addEventListener('click', function(){
+        if(!navigator.onLine){ alert('Δεν έχεις σύνδεση. Θα δουλέψει όταν είσαι online.'); return; }
+        var p=(prompt.value||'').trim(); if(!p){ alert('Γράψε prompt'); return; }
+        alert('Θα στείλω αυτό το prompt στο API σου:\n\n'+p+'\n\n(Μπορώ να σου βάλω απευθείας κλήση όταν έχεις URL.)');
+      });
+
+      // ===== SW
+      if('serviceWorker' in navigator){ navigator.serviceWorker.register('service-worker.js').catch(()=>{}); }
+    });
+  })();
+  </script>
+</body>
+</html>
 
