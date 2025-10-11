@@ -1,1 +1,13 @@
+{
+  "apps": [
+    {
+      "name": "Image Generator",
+      "desc": "Prompt → εικόνες (UI offline, δημιουργία online).",
+      "tags": ["images", "ai"],
+      "icon": "https://ster4runsneakers.github.io/app-image-gen/static/icons/icon-192.png",
+      "url": "https://ster4runsneakers.github.io/app-image-gen/",
+      "repo": "https://github.com/ster4runsneakers/app-image-gen"
+    }
+  ]
+}
 
